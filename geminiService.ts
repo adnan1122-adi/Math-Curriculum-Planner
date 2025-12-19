@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AcademicInfo, Lesson } from "./types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export async function generateCourseMeta(info: AcademicInfo) {
   const prompt = `Generate a professional course description and core learning objectives for a ${info.gradeLevel} ${info.subject} course named "${info.courseName}" for ${info.term} of the ${info.academicYear} academic year. Keep it concise and academic.`;
@@ -25,7 +25,7 @@ export async function generateCourseMeta(info: AcademicInfo) {
     }
   });
 
-  return JSON.parse(response.text);
+  return JSON.parse(response.text ?? '{}');
 }
 
 export async function generateLessonDetails(info: AcademicInfo, lessons: Lesson[]) {
@@ -72,5 +72,5 @@ export async function generateLessonDetails(info: AcademicInfo, lessons: Lesson[
     }
   });
 
-  return JSON.parse(response.text);
+  return JSON.parse(response.text ?? '{"results": []}');
 }
