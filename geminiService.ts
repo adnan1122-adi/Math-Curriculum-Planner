@@ -5,7 +5,7 @@ import { AcademicInfo, Lesson } from "./types";
 export async function generateCourseMeta(info: AcademicInfo) {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("API_KEY environment variable is not configured. Please add it to your environment settings.");
+    throw new Error("API_KEY is missing. Please set it in your environment variables.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -16,24 +16,23 @@ export async function generateCourseMeta(info: AcademicInfo) {
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
-        systemInstruction: "You are a world-class educational consultant specialized in CCSS-aligned curriculum design and instructional planning. Your output must be strictly valid JSON.",
+        systemInstruction: "You are a world-class educational consultant specialized in CCSS-aligned curriculum design and instructional planning. Output valid JSON.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            description: { type: Type.STRING, description: "Professional summary of the course." },
-            objectives: { type: Type.STRING, description: "Bullet-pointed list of measurable learning outcomes." },
-            prerequisites: { type: Type.STRING, description: "Standard prerequisites for this level." },
-            credits: { type: Type.STRING, description: "Standard credit allocation (e.g., 1.0 Credit)." }
+            description: { type: Type.STRING },
+            objectives: { type: Type.STRING },
+            prerequisites: { type: Type.STRING },
+            credits: { type: Type.STRING }
           },
           required: ["description", "objectives", "prerequisites", "credits"]
         }
       }
     });
 
-    const text = response.text;
-    if (!text) throw new Error("Empty response from AI during meta generation.");
-    return JSON.parse(text);
+    if (!response.text) throw new Error("Empty AI response");
+    return JSON.parse(response.text);
   } catch (error) {
     console.error("Meta Generation Error:", error);
     throw error;
@@ -43,30 +42,19 @@ export async function generateCourseMeta(info: AcademicInfo) {
 export async function generateLessonDetails(info: AcademicInfo, lessons: Lesson[]) {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("API_KEY environment variable is not configured.");
+    throw new Error("API_KEY is missing.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
   const lessonListText = lessons.map(l => `ID: ${l.id} | Lesson: ${l.name} | CCSS: ${l.ccss}`).join('\n');
-  const prompt = `Generate detailed instructional content for the following ${info.gradeLevel} ${info.subject} lessons:
-  
-  ${lessonListText}
-  
-  For EACH lesson, provide:
-  - expectations: What students will achieve.
-  - skills: Specific mathematical skills involved.
-  - questions: Inquiry-based prompts.
-  - strategies: Instructional methods and differentiation.
-  - activities: Concrete classroom tasks.
-  
-  Format the output as a JSON object with a 'results' array containing one object per lesson mapping back to the provided ID.`;
+  const prompt = `Generate detailed instructional content for these ${info.gradeLevel} lessons:\n${lessonListText}\n\nInclude: expectations, skills, questions, strategies, and activities for each.`;
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
-        systemInstruction: "You are a professional math instructional designer. Your task is to expand lesson titles into complete instructional frameworks based on CCSS standards. Your output must be strictly valid JSON.",
+        systemInstruction: "You are a professional math instructional designer. Output valid JSON.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -76,7 +64,7 @@ export async function generateLessonDetails(info: AcademicInfo, lessons: Lesson[
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  lessonId: { type: Type.STRING, description: "The ID provided for the lesson." },
+                  lessonId: { type: Type.STRING },
                   expectations: { type: Type.STRING },
                   skills: { type: Type.STRING },
                   questions: { type: Type.STRING },
@@ -92,11 +80,10 @@ export async function generateLessonDetails(info: AcademicInfo, lessons: Lesson[
       }
     });
 
-    const text = response.text;
-    if (!text) throw new Error("Empty response from AI during lesson detail generation.");
-    return JSON.parse(text);
+    if (!response.text) throw new Error("Empty AI response");
+    return JSON.parse(response.text);
   } catch (error) {
-    console.error("Lesson Details Generation Error:", error);
+    console.error("Lesson Details Error:", error);
     throw error;
   }
 }

@@ -53,14 +53,14 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const configInputRef = useRef<HTMLInputElement>(null);
 
-  // Styling States - Refined defaults for professional alignment
+  // Styling States
   const [fontSize, setFontSize] = useState(9);
   const [margins, setMargins] = useState({ top: 15, right: 15, bottom: 15, left: 15 });
   const [showSettings, setShowSettings] = useState(true);
 
-  // Column Width States (A4 Landscape total is ~1122px)
+  // Column Width States
   const [roadmapWidths, setRoadmapWidths] = useState<number[]>([100, 160, 220, 140, 160, 240]);
-  const [distributionWidths, setDistributionWidths] = useState<number[]>([280, 750]);
+  const [distributionWidths, setDistributionWidths] = useState<number[]>([250, 750]);
 
   const [academic, setAcademic] = useState<AcademicInfo>({
     gradeLevel: 'Grade 9',
@@ -126,20 +126,17 @@ export default function App() {
     const opt = {
       margin: 0,
       filename: `${academic.courseName.replace(/\s+/g, '_')}_${activeTab === 'roadmap' ? 'Curriculum_Plan' : 'Distribution'}.pdf`,
-      image: { type: 'jpeg', quality: 1.0 },
+      image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
-        scale: 3, 
+        scale: 2, 
         useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
         letterRendering: true,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 1122.5,
-        width: 1122.5,
-        x: 0,
-        y: 0
+        width: 1122
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'], after: 'section' }
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     // @ts-ignore
@@ -204,9 +201,10 @@ export default function App() {
           td, th { border: 1px solid black; padding: 4pt; font-family: 'Segoe UI', sans-serif; font-size: ${fontSize}pt; vertical-align: top; }
           .page-break { page-break-before: always; }
           h1, h2, h3, h4, p { font-family: 'Segoe UI', sans-serif; }
+          img { max-width: 100%; height: auto; }
         </style>
       </head>
-      <body>
+      <body style="background-color: white;">
         <div class="WordSection1">${content}</div>
       </body>
       </html>
@@ -752,7 +750,7 @@ export default function App() {
                             </label>
                             <div className="flex items-center gap-2">
                                <input 
-                                 type="range" min="40" max="600" step="5" 
+                                 type="range" min="40" max="800" step="5" 
                                  value={w} 
                                  onChange={(e) => activeTab === 'roadmap' ? updateRoadmapWidth(idx, parseInt(e.target.value)) : updateDistributionWidth(idx, parseInt(e.target.value))}
                                  className="flex-1 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-400"
