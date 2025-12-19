@@ -3,13 +3,14 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AcademicInfo, Lesson } from "./types";
 
 // The API key must be obtained from process.env.API_KEY.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
 export async function generateCourseMeta(info: AcademicInfo) {
+  const ai = getAI();
   const prompt = `Generate a professional course description and core learning objectives for a ${info.gradeLevel} ${info.subject} course named "${info.courseName}" for ${info.term} of the ${info.academicYear} academic year. Ensure the tone is highly academic and school-ready.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
       systemInstruction: "You are a world-class educational consultant specialized in CCSS-aligned curriculum design and instructional planning.",
@@ -35,6 +36,7 @@ export async function generateCourseMeta(info: AcademicInfo) {
 }
 
 export async function generateLessonDetails(info: AcademicInfo, lessons: Lesson[]) {
+  const ai = getAI();
   const lessonListText = lessons.map(l => `- ID: ${l.id}, Lesson: ${l.name}, Standard: ${l.ccss}`).join('\n');
   const prompt = `Generate detailed instructional content for the following ${info.gradeLevel} ${info.subject} lessons:
   
